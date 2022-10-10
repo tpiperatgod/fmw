@@ -1,6 +1,7 @@
 package sw
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	"github.com/streamnative/function-mesh/api/compute/v1alpha1"
 	client "github.com/streamnative/function-mesh/api/generated/clientset/versioned"
 	"github.com/tpiperatgod/fmw/pkg/util"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -101,9 +103,9 @@ func FetchOrder(workflow *model.Workflow) []string {
 func CreateFunctionMesh(client client.Interface, workflow *model.Workflow) error {
 	functions := FetchFunctions(workflow)
 	order := FetchOrder(workflow)
-	fmt.Println(functions)
+
 	functionMesh := &v1alpha1.FunctionMesh{}
-	functionMesh.Name = workflow.Name
+	functionMesh.Name = workflow.ID
 	functionMesh.Namespace = util.Namespace
 
 	for _, name := range order {
@@ -134,6 +136,16 @@ func CreateFunctionMesh(client client.Interface, workflow *model.Workflow) error
 	}
 
 	// TODO: create FunctionMesh
+	if fmYaml, err := yaml.Marshal(functionMesh); err == nil {
+		fmt.Println(string(fmYaml))
+	}
+	ctx := context.Background()
+	result, err := client.ComputeV1alpha1().FunctionMeshes(util.Namespace).Create(ctx, functionMesh, metav1.CreateOptions{})
+	if err != nil {
+		fmt.Println("create FunctionMesh error:", err.Error())
+		return err
+	}
+	fmt.Println("create FunctionMesh", result.Name, "successfully")
 	return nil
 }
 
@@ -146,6 +158,7 @@ func createResourceWithOperation(resourceBytes []byte, resource *model.Function,
 			fmt.Println("parse sink error:", err.Error())
 			return err
 		} else {
+			sink.Spec.Name = resource.Name
 			functionMesh.Spec.Sinks = append(functionMesh.Spec.Sinks, sink.Spec)
 			fmt.Println("add sink:", resource.Name)
 			return nil
@@ -156,6 +169,7 @@ func createResourceWithOperation(resourceBytes []byte, resource *model.Function,
 			fmt.Println("parse source error:", err.Error())
 			return err
 		} else {
+			source.Spec.Name = resource.Name
 			functionMesh.Spec.Sources = append(functionMesh.Spec.Sources, source.Spec)
 			fmt.Println("add source:", resource.Name)
 			return nil
@@ -166,6 +180,7 @@ func createResourceWithOperation(resourceBytes []byte, resource *model.Function,
 			fmt.Println("parse function error:", err.Error())
 			return err
 		} else {
+			function.Spec.Name = resource.Name
 			functionMesh.Spec.Functions = append(functionMesh.Spec.Functions, function.Spec)
 			fmt.Println("add function:", resource.Name)
 			return nil
@@ -184,6 +199,7 @@ func createResourceWithSpec(specBytes []byte, resource *model.Function, function
 			fmt.Println("parse sink spec error:", err.Error())
 			return err
 		} else {
+			sinkSpec.Name = resource.Name
 			functionMesh.Spec.Sinks = append(functionMesh.Spec.Sinks, *sinkSpec)
 			fmt.Println("add sink:", resource.Name)
 			return nil
@@ -194,6 +210,7 @@ func createResourceWithSpec(specBytes []byte, resource *model.Function, function
 			fmt.Println("parse source spec error:", err.Error())
 			return err
 		} else {
+			sourceSpec.Name = resource.Name
 			functionMesh.Spec.Sources = append(functionMesh.Spec.Sources, *sourceSpec)
 			fmt.Println("add source:", resource.Name)
 			return nil
@@ -204,6 +221,7 @@ func createResourceWithSpec(specBytes []byte, resource *model.Function, function
 			fmt.Println("parse function spec error:", err.Error())
 			return err
 		} else {
+			functionSpec.Name = resource.Name
 			functionMesh.Spec.Functions = append(functionMesh.Spec.Functions, *functionSpec)
 			fmt.Println("add source:", resource.Name)
 			return nil

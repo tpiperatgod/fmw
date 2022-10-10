@@ -22,8 +22,9 @@ var Root = &cobra.Command{
 }
 
 func Execute() error {
-	Root.AddCommand(create.Create)
+	Root.AddCommand(create.NewCmdCreate())
 
+	Root.PersistentFlags().StringVar(&util.KubeConfig, "kubeconfig", "", "config of Kubernetes cluster")
 	Root.PersistentFlags().StringVarP(&util.FilePath, "file-path", "f", "", "file path")
 	Root.PersistentFlags().StringVarP(&util.Namespace, "namespace", "n", "default", "namespace")
 
