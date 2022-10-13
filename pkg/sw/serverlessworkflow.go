@@ -230,3 +230,21 @@ func createResourceWithSpec(specBytes []byte, resource *model.Function, function
 		return errors.New(fmt.Sprintf("unknown resource type: %s", resourceType))
 	}
 }
+
+func DeleteFunctionMesh(client client.Interface, resourceNames []string) error {
+	ctx := context.Background()
+	var failed []string
+	for _, resourceName := range resourceNames {
+		if err := client.ComputeV1alpha1().FunctionMeshes(util.Namespace).Delete(ctx, resourceName, metav1.DeleteOptions{}); err != nil {
+			fmt.Println("delete FunctionMesh", resourceName, "error:", err.Error())
+			failed = append(failed, resourceName)
+			continue
+		}
+		fmt.Println("delete FunctionMesh", resourceName, "successfully")
+	}
+	if failed == nil {
+		return nil
+	} else {
+		return fmt.Errorf("failed to delete FunctionMesh in namespace [%s]: [%s]", util.Namespace, strings.Join(failed, ", "))
+	}
+}
