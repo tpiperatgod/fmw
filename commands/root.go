@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tpiperatgod/fmw/commands/create"
 	"github.com/tpiperatgod/fmw/commands/delete"
+	"github.com/tpiperatgod/fmw/commands/get"
 	"github.com/tpiperatgod/fmw/pkg/util"
 )
 
@@ -25,6 +26,7 @@ var Root = &cobra.Command{
 func Execute() error {
 	Root.AddCommand(create.NewCmdCreate())
 	Root.AddCommand(delete.NewCmdDelete())
+	Root.AddCommand(get.NewCmdGet())
 
 	Root.PersistentFlags().StringVar(&util.KubeConfig, "kubeconfig", "", "config of Kubernetes cluster")
 	Root.PersistentFlags().StringVarP(&util.FilePath, "file-path", "f", "", "file path")

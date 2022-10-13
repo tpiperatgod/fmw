@@ -135,7 +135,6 @@ func CreateFunctionMesh(client client.Interface, workflow *model.Workflow) error
 		}
 	}
 
-	// TODO: create FunctionMesh
 	if fmYaml, err := yaml.Marshal(functionMesh); err == nil {
 		fmt.Println(string(fmYaml))
 	}
@@ -246,5 +245,26 @@ func DeleteFunctionMesh(client client.Interface, resourceNames []string) error {
 		return nil
 	} else {
 		return fmt.Errorf("failed to delete FunctionMesh in namespace [%s]: [%s]", util.Namespace, strings.Join(failed, ", "))
+	}
+}
+
+func GetFunctionMesh(client client.Interface, resourceName *string) error {
+	ctx := context.Background()
+	fmt.Println(resourceName == nil)
+	if resourceName == nil {
+		if results, err := client.ComputeV1alpha1().FunctionMeshes(util.Namespace).List(ctx, metav1.ListOptions{}); err != nil {
+			fmt.Println("list FunctionMesh in", util.Namespace, "error:", err.Error())
+			return err
+		} else {
+			fmt.Println(results)
+			return nil
+		}
+	}
+	if result, err := client.ComputeV1alpha1().FunctionMeshes(util.Namespace).Get(ctx, *resourceName, metav1.GetOptions{}); err != nil {
+		fmt.Println("get FunctionMesh", *resourceName, "error:", err.Error())
+		return err
+	} else {
+		fmt.Println(result)
+		return nil
 	}
 }
